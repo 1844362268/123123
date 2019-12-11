@@ -1,6 +1,11 @@
 import T from 'ant-design-vue/es/table/Table'
 import get from 'lodash.get'
+import './style.less'
 
+/**
+ * @author 董庆贺
+ * @description 继承自ant table 主要修改为默认列表模式，其他属性参考table属性
+ * */
 export default {
   data () {
     return {
@@ -19,6 +24,19 @@ export default {
       type: [String, Function],
       default: 'key'
     },
+
+    columns:
+      {
+        type:Array,
+        default:() =>[{
+        title: 'default',
+        dataIndex: 'default',
+        scopedSlots: {customRender: 'default'},
+        sorter: false,
+        sortField: 'create_time' // 排序字段名和数据库保持一致
+        }]
+      },
+
     data: {
       type: Function,
       required: true
@@ -103,6 +121,7 @@ export default {
     }
   },
   created () {
+
     const { pageNum } = this.$route.params
     const localPageNum = this.pageURI && (pageNum && parseInt(pageNum)) || this.pageNum
     this.localPagination = ['auto', true].includes(this.showPagination) &&
@@ -135,20 +154,20 @@ export default {
     loadData (pagination, filters, sorter) {
       this.localLoading = true
       const parameter = Object.assign({
-        pageNum: (pagination && pagination.current) ||
+          pageNum: (pagination && pagination.current) ||
           this.showPagination && this.localPagination.current || this.pageNum,
-        pageSize: (pagination && pagination.pageSize) ||
+          pageSize: (pagination && pagination.pageSize) ||
           this.showPagination && this.localPagination.pageSize || this.pageSize
-      },
-      (sorter && sorter.column && sorter.column.sortField && {
-        sortField: sorter.column.sortField
-      }) || {},
-      (sorter && sorter.order && {
-        sortOrder: sorter.order === 'ascend' ? 'asc' : 'desc'
-      }) || {},
-      {
-        ...filters
-      }
+        },
+        (sorter && sorter.column && sorter.column.sortField && {
+          sortField: sorter.column.sortField
+        }) || {},
+        (sorter && sorter.order && {
+          sortOrder: sorter.order === 'ascend' ? 'asc' : 'desc'
+        }) || {},
+        {
+          ...filters
+        }
       )
       console.log('parameter', parameter)
       const result = this.data(parameter)
@@ -158,13 +177,13 @@ export default {
         typeof result.then === 'function') {
         result.then(r => {
           this.localPagination = this.showPagination && Object.assign({}, this.localPagination, {
-            current: r.pageNum, // 返回结果中的当前分页数
-            total: r.total, // 返回结果中的总记录数
-            showSizeChanger: this.showSizeChanger,
-            pageSize: (pagination && pagination.pageSize) ||
+              current: r.pageNum, // 返回结果中的当前分页数
+              total: r.total, // 返回结果中的总记录数
+              showSizeChanger: this.showSizeChanger,
+              pageSize: (pagination && pagination.pageSize) ||
               this.localPagination.pageSize,
-            showTotal: total => `总计${total}条 `
-          }) || false
+              showTotal: total => `总计${total}条 `
+            }) || false
           // 为防止删除数据后导致页面当前页面数据长度为 0 ,自动翻页到上一页
           if (r.list.length === 0 && this.showPagination && this.localPagination.current > 1) {
             this.localPagination.current--
@@ -197,6 +216,7 @@ export default {
           })
         }
       })
+
       return totalList
     },
     /**
@@ -242,7 +262,7 @@ export default {
       )
     },
     renderAlert () {
-      let needTotalItems = null; let clearItem = null
+      let needTotalItems = null, clearItem = null
       if (typeof this.alert === 'boolean') {
         needTotalItems = (
           <span style="margin-right: 12px">总计: {this.localPagination.total} 条数据</span>
@@ -251,10 +271,10 @@ export default {
         // 绘制统计列数据
         needTotalItems = this.needTotalList.map((item) => {
           return (<span style="margin-right: 12px">
-            {item.title}总计 <a style="font-weight: 600">{!item.customRender
-              ? item.total
-              : item.customRender(item.total)}</a>
-          </span>)
+          {item.title}总计 <a style="font-weight: 600">{!item.customRender
+            ? item.total
+            : item.customRender(item.total)}</a>
+        </span>)
         })
 
         // 绘制 清空 按钮
@@ -315,14 +335,14 @@ export default {
       return props[k]
     })
     const table = (
-      <a-table {...{ props, scopedSlots: { ...this.$scopedSlots } }} onChange={this.loadData}>
-        { Object.keys(this.$slots)
-          .map(name => (<template slot={name}>{this.$slots[name]}</template>)) }
+      <a-table {...{ props, scopedSlots: { ...this.$scopedSlots } }}   onChange={this.loadData}>
+        { Object.keys(this.$slots).
+          map(name => (<template slot={name}>{this.$slots[name]}11111</template>)) }
       </a-table>
     )
 
     return (
-      <div class="table-wrapper">
+      <div class="table-wrapper asfhksdjfljasf-table-list">
         { showAlert ? this.renderAlert() : null }
         { table }
       </div>

@@ -20,4 +20,8 @@ export default class QuestionApi {
   static deleteQuestion (id) {
     return post('/question/delete', { id })
   }
+
+  static getSkillTags (params) {
+    return get('/skillTag', params)
+  }
 }

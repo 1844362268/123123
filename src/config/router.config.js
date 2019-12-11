@@ -7,6 +7,7 @@ import {
   PageView
 } from '@/layouts'
 import { devRouterMap } from '@/config/dev-router.config'
+import { testersRouterMap } from '@/config/testers.config'
 export const asyncRouterMap = [
   {
     path: '/',
@@ -220,7 +221,7 @@ export const asyncRouterMap = [
           }
         }]
       },
-      ...devRouterMap
+      ...devRouterMap, ...testersRouterMap
     ]
   }, {
     path: '*',

@@ -4,14 +4,22 @@
       <a-form layout="inline">
         <a-row :gutter="48">
           <a-col :md="8" :sm="24">
-            <a-form-item label="用户名">
+            <a-form-item label="测试人员姓名">
               <a-input
                 v-model="queryParam.keyword"
-                placeholder="请输入用户名关键字"
+                placeholder="请输入"
                 @pressEnter="$refs.table.refresh()"></a-input>
             </a-form-item>
           </a-col>
           <a-col :md="8" :sm="24">
+            <a-form-item label="联系方式">
+              <a-input
+                v-model="queryParam.tel"
+                placeholder="请输入"
+                @pressEnter="$refs.table.refresh()"></a-input>
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="24" style="flex-direction: row-reverse;display: flex">
             <span class="table-page-search-submitButtons">
               <a-button type="primary" icon="search" @click="$refs.table.refresh()">查询</a-button>
               <a-button style="margin-left: 8px" icon="redo" @click="reset()">重置</a-button>
@@ -23,54 +31,36 @@
     <a-card :bordered="false">
 
       <div class="table-operator">
-        <a-button type="primary" icon="plus" @click="handleAdd()">新建</a-button>
+        <h4>数据列表</h4>
       </div>
 
-      <!--      <s-table
+      <s-table
         ref="table"
         rowKey="id"
         :columns="columns"
         :data="loadData"
         showPagination="auto"
       >
-
-      </s-table>-->
-
-      <a-list itemLayout="vertical" size="large" :pagination="pagination" showPagination="auto" :dataSource="loadData">
-        <div slot="footer"><b>ant design vue</b> footer part</div>
-        <a-list-item slot="renderItem" slot-scope="item, index" >
-
-          <img
-            slot="extra"
-            width="272"
-            alt="logo"
-            src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png"
-          />
-        </a-list-item>
-
-      </a-list>
-
+        <span slot="serial" slot-scope="text, record, index">
+          {{ index + 1 }}
+        </span>
+        <span slot="createTime" slot-scope="text, record">{{ record.createTime | moment }}</span>
+        <span slot="action" slot-scope="text, record">
+          <template>
+            <a @click="handleDelete(record)">删除</a>
+            <a-divider type="vertical"/>
+            <a @click="handleDetail(record)">查看1</a>
+          </template>
+        </span>
+      </s-table>
     </a-card>
   </div>
 </template>
 
 <script>
 import { STable } from '@/components'
-import QuestionApi from '@/api/question'
-const data = [
-  {
-    title: 'Ant Design Title 1'
-  },
-  {
-    title: 'Ant Design Title 2'
-  },
-  {
-    title: 'Ant Design Title 3'
-  },
-  {
-    title: 'Ant Design Title 4'
-  }
-]
+import AccountApi from '@/api/account'
+
 export default {
   name: 'TableList',
   components: {
@@ -78,22 +68,16 @@ export default {
   },
   data () {
     return {
-      pagination: {
-        onChange: page => {
-          console.log(page)
-        },
-        pageSize: 3
-      },
       // 查询参数
       queryParam: {},
       // 表头
       columns: [
         {
-          title: '#',
+          title: '序号',
           scopedSlots: { customRender: 'serial' }
         },
         {
-          title: '用户名',
+          title: '测试人姓名',
           dataIndex: 'name'
         },
         {
@@ -101,15 +85,16 @@ export default {
           dataIndex: 'phone'
         },
         {
-          title: '角色',
+          title: '应聘岗位',
           dataIndex: 'roleName'
         },
         {
-          title: '创建时间',
-          dataIndex: 'createTime',
-          scopedSlots: { customRender: 'createTime' },
-          sorter: true,
-          sortField: 'create_time' // 排序字段名和数据库保持一致
+          title: '应聘企业',
+          dataIndex: 'roleName'
+        },
+        {
+          title: '测试次数',
+          dataIndex: 'roleName'
         },
         {
           title: '操作',
@@ -118,22 +103,20 @@ export default {
           scopedSlots: { customRender: 'action' }
         }
       ],
-      data,
       // 加载数据方法 必须为 Promise 对象
-      loadData: []
+      loadData: parameter => {
+        return AccountApi.getAccounts(Object.assign(parameter, this.queryParam)).then(res => {
+          return res.data
+        })
+      }
     }
   },
   methods: {
-    getList () {
-      QuestionApi.getQuestions(Object.assign({}, this.queryParam)).then(res => {
-        this.loadData = res.data
-      })
-    },
     handleAdd () {
       this.$router.push('account/add')
     },
-    handleEdit (record) {
-      this.$router.push({ path: 'account/add', query: { id: record.id } })
+    handleDetail (record) {
+      this.$router.push({ path: 'testers/detail', query: { id: record.id } })
     },
     handleDelete (record) {
       AccountApi.deleteAccount(record.id).then(res => {
@@ -148,9 +131,6 @@ export default {
       this.queryParam = {}
       this.$refs.table.refresh()
     }
-  },
-  mounted () {
-    this.getList()
   }
 }
 </script>

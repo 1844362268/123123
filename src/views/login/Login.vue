@@ -6,7 +6,7 @@
       </div>
       <div class="dl">
         <div class="du">
-          <img src="../../assets/wnimg/logoo.png" alt />
+          <img src="../../assets/logo.png" alt />
           <p>企业云笔试运营平台</p>
         </div>
         <div class="dw">

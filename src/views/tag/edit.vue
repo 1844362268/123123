@@ -15,17 +15,12 @@
           <a-input type="hidden" v-decorator="['id']"></a-input>
         </a-form-item>
         <a-form-item label="技术方向" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-select
-            placeholder="java"
-            v-decorator="['techName']">
+          <a-select placeholder="java" v-decorator="['techName']">
             <a-select-option value="1">java</a-select-option>
           </a-select>
-
         </a-form-item>
         <a-form-item label="技能标签" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input
-            v-decorator="['name', {rules: rules.skillTagName}]"
-            placeholder="请输入技能标签"></a-input>
+          <a-input v-decorator="['name', {rules: rules.skillTagName}]" placeholder="请输入技能标签"></a-input>
         </a-form-item>
       </a-form>
     </a-spin>
@@ -84,24 +79,23 @@ export default {
     },
     // 保存
     handleSubmit () {
-      const { form: { validateFields } } = this
+      const {
+        form: { validateFields }
+      } = this
       this.showLoading = true
       const validateFieldsKey = ['id', 'name']
       validateFields(validateFieldsKey, (errors, values) => {
         if (!errors) {
           if (values.id) {
             TagApi.update(values).then(res => {
+              this.showLoading = false
               this.$emit('parentMethod', this.toedit.pageNum)
-              this.handleSuccess()
+              this.$message.success('修改成功')
+              this.visible = false
             })
           }
         }
-        this.showLoading = false
       })
-    },
-    handleSuccess () {
-      this.visible = false
-      this.form.resetFields()
     }
   }
 }

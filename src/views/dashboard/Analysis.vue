@@ -69,23 +69,25 @@
       <a-card style="width: 100%;margin:0 auto;min-width:1080px;">
         <span class="datalisit">数据列表</span>
         <a-button class="editable-add-btn" type="primary" @click="handleAdd">新增</a-button>
-        <a-table
-          ref="table"
-          :dataSource="this.data.list"
-          :columns="columns"
-          :pagination="pagination"
-          @change="handleTableChange"
-          rowKey="id"
-        >
-          <template slot="operation" slot-scope="text, record">
-            <a @click="deleteuser(record)">删除</a>
-            |&nbsp;
-            <a @click="showModal2(record)">查看</a>
-            | &nbsp;
-            <a @click="showModal3(record)">编辑</a>
-          </template>
+        <a-spin :spinning="showLoading">
+          <a-table
+            ref="table"
+            :dataSource="this.data.list"
+            :columns="columns"
+            :pagination="pagination"
+            @change="handleTableChange"
+            rowKey="id"
+          >
+            <template slot="operation" slot-scope="text, record">
+              <a @click="deleteuser(record)">删除</a>
+              |&nbsp;
+              <a @click="showModal2(record)">查看</a>
+              | &nbsp;
+              <a @click="showModal3(record)">编辑</a>
+            </template>
 
-        </a-table>
+          </a-table>
+        </a-spin>
       </a-card>
     </div>
   </div>
@@ -105,14 +107,15 @@ export default {
         pageSize: 10,
         showTotal: total => `总计${this.data.total}条`,
         total: 0,
-        pageNum: null
+        pageNum: 1
       },
-
+      showLoading: true,
       columns: [
         {
           title: '序号',
           scopedSlots: { customRender: 'number' },
-          customRender: (text, record, index) => `${(this.pagination.pageNum - 1) * 10 + index + 1}`
+          customRender: (text, record, index) => `${(this.pagination.pageNum - 1) * (this.pagination.pageSize) + (index + 1)}`
+
         },
         {
           title: '企业名称',
@@ -143,11 +146,13 @@ export default {
   },
   created () {
     // 获取表格数据
+
     EnterpriseApi.getAccounts()
       .then(res => {
         const { data } = res
         this.data = data
-        this.pagination = { ...this.pagination, total: data.total }
+        this.pagination = { ...this.pagination, total: data.total, pageSize: data.pageSize }
+        this.showLoading = false
         return this.data
       })
       .catch(err => {
@@ -156,11 +161,13 @@ export default {
   },
   methods: {
     handleTableChange (pagination) {
-      this.pagination.pageNum = pagination.current
-      const searchNum = { pageNum: this.pagination.pageNum }
+      this.showLoading = true
+      const searchNum = { pageNum: pagination.current }
       console.log(searchNum)
       EnterpriseApi.getAccounts(searchNum)
         .then(res => {
+          this.showLoading = false
+          this.pagination.pageNum = pagination.current
           this.data = res.data
         })
         .catch(err => alert(err))
@@ -172,6 +179,7 @@ export default {
       const {
         form: { validateFields }
       } = this
+      this.showLoading = true
       const validateFieldsKey = ['name', 'phone', 'status']
       validateFields(validateFieldsKey, { force: true }, (err, values) => {
         if (!err) {
@@ -184,8 +192,10 @@ export default {
             EnterpriseApi.getAccounts(searchParams)
               .then(res => {
                 this.data = res.data
+                this.showLoading = false
                 this.pagination = { ...this.pagination, total: this.data.total }
               })
+
               .catch(err => this.requestFailed(err))
           }
         }
@@ -200,11 +210,12 @@ export default {
     },
     // 重置
     handleReset () {
+      this.showLoading = true
       this.form.resetFields()
       EnterpriseApi.getAccounts({ pageNum: 1 })
         .then(res => {
           this.data = res.data
-
+          this.showLoading = false
           return this.data
         })
         .catch(err => {
@@ -214,18 +225,21 @@ export default {
     // 删除
     deleteuser (record) {
       const that = this
+
       this.$confirm({
         title: '确定要删除吗?',
         content: '删除之后数据将无法恢复',
         okText: '确定',
         cancelText: '取消',
         onOk () {
+          that.showLoading = true
           EnterpriseApi.deleteAccount(record.id).then(res => {
-            that.$message.success('删除成功')
             EnterpriseApi.getAccounts()
               .then(res => {
                 that.data = res.data
                 that.pagination = { ...that.pagination, total: that.data.total }
+                that.showLoading = false
+                that.$message.success('删除成功')
                 return that.data
               })
               .catch(err => {

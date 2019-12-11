@@ -1,91 +1,168 @@
 <template>
-  <a-card :bordered="false">
-    <a-steps :current="current">
-      <a-step>
-        <!-- <span slot="title">Finished</span> -->
-        <template slot="title">
-          上传文件
-        </template>
-        <!--
-        <span slot="description">上传文件</span>
--->
-      </a-step>
-      <a-step title="执行导入" />
-      <a-step title="完成导入" />
-    </a-steps>
+  <a-card :bordered="false" class="batch-add">
+    <a-row>
+      <a-col offset="6" :md="12" style="margin-top: 30px">
+        <a-steps class="import-steps" :current="current" style="width: 100%">
+          <a-step>
+            <!-- <span slot="title">Finished</span> -->
+            <template slot="title">
+              上传文件
+            </template>
+            <!--
+                    <span slot="description">上传文件</span>
+            -->
+          </a-step>
+          <a-step title="执行导入"/>
+          <a-step title="完成导入"/>
+        </a-steps>
+      </a-col>
+    </a-row>
 
-    <div class="steps-content">
-      <!--step1-->
-      <div v-show="current==0">
-        <a-row :gutter="16">
-          <a-col :md="2">
-            <a-icon :component="DownLoadSvg" />
-          </a-col>
-          <a-col :md="22">
-            <p>请填写信息表</p>
-            <p>请按照预设模板的格式进行试题导入，保证所有单元格均为文本格式，为防止解析出错，不同题型请放入不同单元簿中题目描述、选项、答案皆为必填。</p>
-            <a>下载模版</a>
-          </a-col>
+    <a-row>
+      <a-col offset="4" :md="16">
+        <div class="steps-content">
+          <!--step1-->
+          <div v-show="current==0" class="steps-content-item">
+
+            <div class="item-wrap">
+              <div style="width: 150px;height: 150px;background: rgba(245,245,245,1);padding: 40px; flex-shrink:0;">
+                <svg class="icon" aria-hidden="true" style="width: 100%;height: 100%">
+                  <use xlink:href="#iconxingzhuang10"></use>
+                </svg>
+              </div>
+              <div class="description">
+                <div style="padding-left: 20px;padding-right: 20px">
+                  <h4>请填写信息表</h4>
+                  <p>请按照预设模板的格式进行试题导入，保证所有单元格均为文本格式，为防止解析出错，不同题型请放入不同单 元簿中题目描述、选项、答案皆为必填。</p>
+                  <a href="/demo.xlsx" target="_blank">下载模版</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="item-wrap">
+              <div style="width: 150px;height: 150px;background: rgba(245,245,245,1);padding: 40px;flex-shrink:0;">
+                <svg class="icon" aria-hidden="true" style="width: 100%;height: 100%">
+                  <use xlink:href="#iconxingzhuangkaobei"></use>
+                </svg>
+              </div>
+              <div class="description">
+                <div style="padding-left: 20px;padding-right: 20px">
+                  <h4>请填写信息表</h4>
+                  <p>文件后缀名必须为xls 或xlsx （即Excel格式），文件大小不得大于10M</p>
+                  <a-upload :fileList="fileList" :remove="handleRemove" :beforeUpload="beforeUpload">
+                    <a-button type="link" style="padding: 0px"> 上传文件</a-button>
+                  </a-upload>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!--step2-->
+          <div v-show="current==1" class="steps-content-item">
+
+            <div class="item-wrap">
+              <div style="width: 150px;height: 150px;background: rgba(245,245,245,1);padding: 40px">
+                <svg class="icon" aria-hidden="true" style="width: 100%;height: 100%">
+                  <use xlink:href="#iconxingzhuang10"></use>
+                </svg>
+              </div>
+              <div class="description">
+                <div style="padding-left: 20px;padding-right: 20px">
+                  <h4>本次可导入试题数量</h4>
+                  <p style="color:#1b9aee;">{{ success }}</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="item-wrap">
+              <div style="width: 150px;height: 150px;background: rgba(245,245,245,1);padding: 40px">
+                <svg class="icon" aria-hidden="true" style="width: 100%;height: 100%">
+                  <use xlink:href="#iconxingzhuangkaobei"></use>
+                </svg>
+              </div>
+              <div class="description">
+                <div style="padding-left: 20px;padding-right: 20px">
+                  <h4>本次不可导入试题数量</h4>
+                  <p style="color:#1b9aee;">{{ fail }}</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!--step3-->
+          <div v-show="current==2" style="margin: auto;display: block;text-align: center">
+            <a-icon type="check-circle"style="color: rgb(45,255,89);font-size: 90px;margin-top: 60px" theme="filled" />
+            <p style="font-size: 22px;font-weight: bold;margin-top: 20px;margin-bottom: 40px;text-align: center">批量导入成功</p>
+          </div>
+        </div>
+        <div class="steps-action">
+          <!--          <a-button v-if="current < 0" type="primary" @click="prev">
+            取消
+          </a-button>-->
+          <a-button v-if="current==1" style="margin-right: 8px" @click="prev">
+            取消
+          </a-button>
+          <a-button
+            v-if="current < steps.length - 1"
+            type="primary"
+            @click="next"
+            :loading="uploading"
+          >
+            下一步
+          </a-button>
+          <a-button
+            v-if="current == steps.length - 1"
+            type="primary"
+            @click="finish"
+          >
+            完成
+          </a-button>
+
+        </div>
+
+        <a-row v-show="current==1" style="margin-top: 30px">
+          <a-card title="上传失败试题">
+            <a href="#" slot="extra">
+              <a-button type="primary">下载</a-button>
+            </a>
+
+            <a-table
+              ref="table"
+              rowKey="id"
+              :columns="columns"
+              :dataSource="data"
+              showPagination="false"
+            >
+            </a-table>
+
+          </a-card>
         </a-row>
 
-        <a-row :gutter="16">
-          <a-col :md="2">
-            <a-icon :component="UploadSvg" />
-          </a-col>
-          <a-col :md="22">
-            <p>请填写信息表</p>
-            <p>请按照预设模板的格式进行试题导入，保证所有单元格均为文本格式，为防止解析出错，不同题型请放入不同单元簿中题目描述、选项、答案皆为必填。</p>
-            <a>上传文件</a>
-          </a-col>
-        </a-row>
-      </div>
+      </a-col>
 
-      <!--step2-->
-      <div >
-
-      </div>
-
-      <!--step3-->
-      <div >
-
-      </div>
-
-      <a-row :gutter="16" v-show="current==1">
-        2
-      </a-row>
-      <a-row :gutter="16" v-show="current==2">
-        3
-      </a-row>
-    </div>
-    <div class="steps-action">
-      <a-button v-if="current < 0" type="primary" @click="next">
-        取消
-      </a-button>
-      <a-button v-if="current < steps.length - 1" type="primary" @click="next">
-        下一步
-      </a-button>
-      <a-button
-        v-if="current == steps.length - 1"
-        type="primary"
-        @click="$message.success('Processing complete!')"
-      >
-        完成
-      </a-button>
-      <a-button v-if="current>0" style="margin-left: 8px" @click="prev">
-        上一步
-      </a-button>
-    </div>
+    </a-row>
 
   </a-card>
 </template>
 
 <script>
+
 import SingleUpload from '@/components/Upload/SingleUpload'
 import RoleApi from '@/api/role'
 import QuestionApi from '@/api/question'
 import DownLoadSvg from '@/assets/icons/download.svg'
 import UploadSvg from '@/assets/icons/upload.svg'
+import { STable } from '@/components'
+
 import pick from 'lodash.pick'
+
+(function () {
+  if (!window.JSON) {
+    document.write('<scr' + 'ipt src="http://cdnjs.cloudflare.com/ajax/libs/json3/3.3.2/json3.min.js"><\/scr' + 'ipt>')
+  }
+}())
 
 const phoneRegx = /^(13[0-9]{9})|(18[0-9]{9})|(14[0-9]{9})|(17[0-9]{9})|(15[0-9]{9})$/
 
@@ -93,15 +170,17 @@ export default {
   components: {
     SingleUpload,
     DownLoadSvg,
-    UploadSvg
+    UploadSvg,
+    STable
+
   },
   data () {
     const id = this.$route.query.id
     return {
-
-      current: 0,
-      steps: [1, 2, 3],
       fileList: [],
+      uploading: false,
+      current: 1,
+      steps: [1, 2, 3],
       id: id,
       placeholder: id ? '不填写则使用原来密码' : '请输入密码',
       roles: [],
@@ -121,7 +200,38 @@ export default {
       uploadUrl: process.env.VUE_APP_API_BASE_URL + '/user/upload',
       questionUploadUrl: process.env.VUE_APP_API_BASE_URL + 'question/upload',
       form: this.$form.createForm(this),
-      headers: {}
+      headers: {},
+      success: 0,
+      fail: 0,
+      data: [],
+      loadData: () => {
+        return this.data
+      },
+      // 查询参数
+      queryParam: {},
+      // 表头
+      columns: [
+        {
+          title: '序号',
+          scopedSlots: { customRender: 'serial' }
+        },
+        {
+          title: '题目类型',
+          dataIndex: 'type'
+        },
+        {
+          title: '试题位置',
+          dataIndex: 'rowNum'
+        },
+        {
+          title: '题干信息',
+          dataIndex: 'content'
+        },
+        {
+          title: '错误提示',
+          dataIndex: 'errors'
+        }
+      ]
     }
   },
   created () {
@@ -141,11 +251,77 @@ export default {
     })
   },
   methods: {
+    finish () {
+      this.$message.success('上传成功!')
+      this.$router.go(-1)
+    },
+    refresh () {
+      this.$refs.table.refresh()
+    },
     next () {
-      this.current++
+      if (this.current == 0) {
+        this.handleUpload()
+      }
+      if (this.current == 1) {
+        this.current = 2
+      }
     },
     prev () {
       this.current--
+    },
+    handleUpload () {
+      const { fileList } = this
+      const formData = new FormData()
+      fileList.forEach(file => {
+        formData.append('file', file)
+      })
+      this.uploading = true
+      const config = {
+        // 添加请求头
+        headers: { 'Content-Type': 'multipart/form-data' },
+        // 添加上传进度监听事件
+        onUploadProgress: e => {
+          var completeProgress = ((e.loaded / e.total * 100) | 0) + '%'
+          this.progress = completeProgress
+        }
+      }
+
+      const self = this
+      this.axios.post('http://106.13.26.82/question/upload', formData, config).then(function (res) {
+        self.current++
+        self.uploading = false
+
+        self.success = res.data.success
+        self.fail = res.data.fail
+        self.data = res.data.questionErrorBos
+      })
+
+      // You can use any AJAX library you like
+      /* reqwest({
+          url: 'http://106.13.26.82/question/upload',
+          method: 'post',
+          processData: false,
+          data: formData,
+          success: () => {
+            this.fileList = [];
+            this.uploading = false;
+            this.$message.success('upload successfully.');
+          },
+          error: () => {
+            this.uploading = false;
+            this.$message.error('upload failed.');
+          },
+        }); */
+    },
+    handleRemove (file) {
+      const index = this.fileList.indexOf(file)
+      const newFileList = this.fileList.slice()
+      newFileList.splice(index, 1)
+      this.fileList = newFileList
+    },
+    beforeUpload (file) {
+      this.fileList = [...this.fileList, file]
+      return false
     },
     handleChange (info) {
       if (info.file.status == 'done') {
@@ -237,5 +413,44 @@ export default {
   }
 }
 </script>
-<style>
+<style lang="less">
+  .batch-add {
+    .steps-content {
+      margin-top: 40px;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      flex-wrap: nowrap;
+      .steps-content-item {
+        width: 100%;
+        margin-top: 10px;
+      }
+
+      .item-wrap {
+        display: flex;
+        border: 1px solid #DADADA;
+        margin-top: 40px;
+
+        .description {
+          display: flex;
+          align-items: center;
+          line-height: 1.3;
+        }
+      }
+    }
+
+    .steps-action{
+      display: flex;
+      margin: 20px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .import-steps{
+      .ant-steps-item-process .ant-steps-item-icon>.ant-steps-icon{
+        color: white;
+      }
+    }
+
+  }
 </style>

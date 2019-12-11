@@ -96,11 +96,13 @@ import pick from 'lodash.pick'
 
 const phoneRegx = /^(13[0-9]{9})|(18[0-9]{9})|(14[0-9]{9})|(17[0-9]{9})|(15[0-9]{9})$/
 
+let vm = {}
 export default {
   components: {
     SingleUpload
   },
   data () {
+    vm = this
     const id = this.$route.query.id
     const question = {
       content: '',
@@ -151,11 +153,11 @@ export default {
         /*
         {name: "全部", id: null},
 */
-        { name: 'mysql', id: 1 },
-        { name: 'spring', id: 2 },
-        { name: 'Spring boot', id: 3 },
-        { name: 'mybatis', id: 4 },
-        { name: 'jpa', id: 5 }
+        /*      {name: "mysql", id: 1},
+        {name: "spring", id: 2},
+        {name: "Spring boot", id: 3},
+        {name: "mybatis", id: 4},
+        {name: "jpa", id: 5}, */
       ],
       skillTagIds: [],
       questionTypes: [
@@ -197,12 +199,13 @@ export default {
   created () {
     this.$nextTick(() => {
       // 角色列表
-      RoleApi.getList().then(res => {
-        this.roles = res.data
+      const params = {}
+      QuestionApi.getSkillTags(params).then(res => {
+        vm.skillTags = vm.skillTags.concat(res.data.list)
       })
       // 用户编辑数据获取
       if (this.id) {
-        AccountApi.getAccount(this.id).then(res => {
+        QuestionApi.getQuestion(this.id).then(res => {
           this.form.setFieldsValue(res.data)
         })
       }

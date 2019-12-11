@@ -28,7 +28,7 @@ import TagSelect from '@/components/TagSelect'
 import ExceptionPage from '@/components/Exception'
 import StandardFormRow from '@/components/StandardFormRow'
 import ArticleListContent from '@/components/ArticleListContent'
-
+import SList from '@/components/SList'
 export {
   AvatarList,
   Bar,
@@ -52,6 +52,7 @@ export {
   DescriptionList as DetailList,
   Tree,
   STable,
+  SList,
   MultiTab,
   Result,
   ExceptionPage,

@@ -8,10 +8,13 @@ export default class SetApi {
   static reset (params) {
     return post('/setting/reset', params)
   }
-  static getCaptcha (phone) {
-    return get('/setting/captcha', phone)
+  static getCaptcha (params) {
+    return get('/setting/captcha', params)
   }
-  static update (params) {
+  static upDate (params) {
     return post('/setting/update', params)
+  }
+  static checkDate (params) {
+    return post('/setting/check', params)
   }
 }

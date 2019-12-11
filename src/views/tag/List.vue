@@ -34,24 +34,24 @@
       <a-card style="width: 100%;margin:0 auto;min-width:1080px;">
         <span class="datalisit">数据列表</span>
         <a-button class="editable-add-btn" type="primary" @click="handleAdd()">新增</a-button>
-
-        <a-table
-          ref="table"
-          :dataSource="data.list"
-          :columns="columns"
-          :pagination="pagination"
-          rowKey="id"
-          @change="handleTableChange"
-
-        >
-          <template slot="operation" slot-scope="text, record">
-            <a @click="deleteuser(record)">删除</a>
-            |&nbsp;
-            <a @click="showModal(record)">查看</a>
-            | &nbsp;
-            <a @click="handleEdit(record)">编辑</a>
-          </template>
-        </a-table>
+        <a-spin :spinning="showLoading">
+          <a-table
+            ref="table"
+            :dataSource="data.list"
+            :columns="columns"
+            :pagination="pagination"
+            rowKey="id"
+            @change="handleTableChange"
+          >
+            <template slot="operation" slot-scope="text, record">
+              <a @click="deleteuser(record)">删除</a>
+              |&nbsp;
+              <a @click="showModal(record)">查看</a>
+              | &nbsp;
+              <a @click="handleEdit(record)">编辑</a>
+            </template>
+          </a-table>
+        </a-spin>
       </a-card>
       <add-modal ref="addModal" @parentMethod="reload" :toadd="toadd"></add-modal>
       <edit-modal ref="editModal" @parentMethod="reload" :toedit="toedit"></edit-modal>
@@ -78,18 +78,18 @@ export default {
         showQuickJumper: true,
         pageSize: 10,
         showTotal: total => `总计${this.data.total}条`,
-        total: 11,
-        pageNum: null
+        total: 0,
+        pageNum: 1
       },
       data: {},
       toedit: {},
       toadd: {},
-
+      showLoading: true,
       columns: [
         {
           title: '序号',
           scopedSlots: { customRender: 'number' },
-          customRender: (text, record, index) => `${(this.pagination.pageNum - 1) * 10 + index + 1}`
+          customRender: (text, record, index) => `${(this.pagination.pageNum - 1) * (this.pagination.pageSize) + (index + 1)}`
         },
         {
           title: '技术方向',
@@ -114,10 +114,9 @@ export default {
     TagApi.getList()
       .then(res => {
         this.data = res.data
-
-        this.pagination = { ...this.pagination, total: this.data.total }
-
+        this.pagination = { ...this.pagination, total: this.data.total, pageSize: this.data.pageSize }
         this.toedit = this.data
+        this.showLoading = false
         return this.data
       })
       .catch(err => {
@@ -137,12 +136,14 @@ export default {
     },
     //  点击页码
     handleTableChange (pagination) {
-      this.pagination.pageNum = pagination.current
-      const searchNum = { pageNum: this.pagination.pageNum }
+      this.showLoading = true
+      const searchNum = { pageNum: pagination.current }
       // console.log(searchNum)
       TagApi.getList(searchNum)
         .then(res => {
+          this.showLoading = false
           this.data = res.data
+          this.pagination.pageNum = pagination.current
         })
         .catch(err => alert(err))
     },
@@ -164,14 +165,15 @@ export default {
         okText: '确定',
         cancelText: '取消',
         onOk () {
+          that.showLoading = true
           TagApi.delete(record.id).then(res => {
             console.log(record.id)
-            that.$message.success('删除成功')
             TagApi.getList()
               .then(res => {
                 that.data = res.data
                 that.pagination = { ...that.pagination, total: that.data.total }
-                console.log(that.pagination)
+                that.showLoading = false
+                that.$message.success('删除成功')
                 return that.data
               })
               .catch(err => {
@@ -187,6 +189,7 @@ export default {
       const {
         form: { validateFields }
       } = this
+      this.showLoading = true
       const validateFieldsKey = ['keyword']
       validateFields(validateFieldsKey, { force: true }, (err, values) => {
         if (!err) {
@@ -197,6 +200,7 @@ export default {
               this.data = res.data
               this.pagination = { ...this.pagination, total: this.data.total }
               console.log(this.data)
+              this.showLoading = false
               return this.data
             })
           }
@@ -205,10 +209,12 @@ export default {
     },
     // 重置
     handleReset () {
+      this.showLoading = true
       this.form.resetFields()
       TagApi.getList()
         .then(res => {
           this.data = res.data
+          this.showLoading = false
           return this.data
         })
         .catch(err => {

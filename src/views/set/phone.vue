@@ -23,13 +23,12 @@
         <!-- 验证码 -->
         <a-form-item label="验证码" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-input
-
             v-decorator="['captcha',{rules: [{ required: true,len:6, message: '请输入六位数字验证码' },{ validator: this.codeCheck1 }], validateTrigger: 'blur'} ]"
             placeholder="请输入验证码"></a-input>
         </a-form-item>
         <!-- 新手机号 -->
         <a-form-item label="新手机号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-          <a-input v-decorator="['newphone', {rules:[{ required: true, len: 11, message: '请输入正确的手机号' }, { validateTrigger: ['change', 'blur'] }]}]" placeholder="请输入手机号"></a-input>
+          <a-input v-decorator="['newPhone', {rules:[{ required: true, len: 11, message: '请输入正确的手机号' }, { validateTrigger: ['change', 'blur'] }]}]" placeholder="请输入手机号"></a-input>
           <a-button
             class="getCaptcha2"
             :disabled="state2.smsSendBtn"
@@ -101,7 +100,8 @@ export default {
       // 编辑赋值
       var tel = this.tophone
       tel = '' + tel
-      var tel1 = tel.replace(tel.substring(3, 7), '****')
+      var reg = /^(\d{3})\d*(\d{4})$/
+      var tel1 = tel.replace(reg, '$1****$2')
       this.phoenNumber = tel1
     },
     hide () {
@@ -115,7 +115,8 @@ export default {
       this.form.setFieldsValue({
         phone: this.tophone
       })
-      validateFields(['phone'], { force: true }, (err, values) => {
+      const validateFieldsKey = ['phone']
+      validateFields(validateFieldsKey, { force: true }, (err, values) => {
         if (!err) {
           state1.smsSendBtn = true
           console.log(values)
@@ -138,31 +139,34 @@ export default {
     },
     async codeCheck1 (rule, value, callback) {
       if (value) {
-        await SetApi.update(value)
+        const params = { phone: `${this.tophone}`, captcha: value }
+        // console.log(params)
+        await SetApi.checkDate(params)
           .then(res => {
             console.log(res)
-            this.$message.success('验证码正确')
+            // this.$message.success('验证码正确')
           })
           .catch(err => {
-            this.$message.error('验证码错误')
-            this.requestFailed(err)
+            console.log(err)
+            callback(new Error('验证码错误'))
+            // this.requestFailed(err)
           })
       }
     },
     getCaptcha2 (e) {
       e.preventDefault()
       const { form: { validateFields }, state2 } = this
-      validateFields(['newphone'], { force: true }, (err, values) => {
+      validateFields(['newPhone'], { force: true }, (err, values) => {
         if (!err) {
-          const code = { phone: values.newphone }
+          const code = { phone: values.newPhone }
           console.log(code)
           state2.smsSendBtn = true
           SetApi.getCaptcha(code)
             .then(res => {
               console.log(res)
-              this.$message.success('已发送验证码到' + `${values.newphone}`)
+              this.$message.success('已发送验证码到' + `${values.newPhone}`)
             })
-            .catch(err => this.requestFailed(err))
+            .catch(err => console.log(err))
           const interval2 = window.setInterval(() => {
             if (state2.time-- <= 0) {
               state2.time = 60
@@ -176,13 +180,16 @@ export default {
     },
     async codeCheck2 (rule, value, callback) {
       if (value) {
-        await SetApi.update(value)
+        const phone = this.form.getFieldValue('newPhone')
+        const params = { phone: phone, captcha: value }
+        console.log(params)
+        await SetApi.checkDate(params)
           .then(res => {
             // this.$message.success('验证码正确')
           })
           .catch(err => {
-            this.$message.error('验证码错误')
-            this.requestFailed(err)
+            console.log(err)
+            callback(new Error('验证码错误'))
           })
       }
     },
@@ -195,18 +202,18 @@ export default {
       this.form.setFieldsValue({
         phone: this.tophone
       })
-      const validateFieldsKey = ['phone', 'newphone']
+      const validateFieldsKey = ['phone', 'captcha', 'newPhone', 'newCaptcha']
       validateFields(validateFieldsKey, (errors, values) => {
         if (!errors) {
           console.log(values)
-          SetApi.update(values)
+          SetApi.upDate(values)
             .then(res => {
               console.log(res)
+              this.$emit('parentMethod')
               this.handleSuccess()
             })
-            .catch(err => this.requestFailed(err))
+            .catch(err => console.log(err))
         }
-        this.showLoading = false
       })
     },
     handleSuccess () {
@@ -214,15 +221,16 @@ export default {
       localStorage.removeItem('siteName')
       localStorage.removeItem('sitePassword')
       this.visible = false
+
       this.form.resetFields()
-    },
-    requestFailed (err) {
-      this.$notification['error']({
-        message: '错误',
-        description: ((err.response || {}).data || {}).message || '请求出现错误，请稍后再试',
-        duration: 4
-      })
     }
+    // requestFailed (err) {
+    //   this.$notification['error']({
+    //     message: '错误',
+    //     description: ((err.response || {}).data || {}).message || '请求出现错误，请稍后再试',
+    //     duration: 1
+    //   })
+    // }
   }
 }
 </script>

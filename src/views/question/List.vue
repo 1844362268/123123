@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <a-card style="display: flex;flex-direction: row-reverse;background: #f0f2f5;border:0px">
+  <div class="question-list">
+    <a-card class="button-card" style="display: flex;flex-direction: row-reverse;background: #f0f2f5;border:0px;padding:0px">
 
       <a-button style="margin-right: 10px" size="large" type="default" @click="handleBatchAdd()">批量导入</a-button>
       <a-button type="primary" size="large" @click="handleAdd()">导入试题</a-button>
@@ -8,7 +8,7 @@
     </a-card>
 
     <a-card :bordered="false">
-      <a-form>
+      <a-form class="select-form">
         <a-form-item label="技术方向:" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <a-radio-group @change="onChange" v-model="queryParam.skill">
             <a-radio-button class="select-btn" :value="item.id" v-for="item in skills">{{ item.name }}
@@ -48,14 +48,19 @@
     </a-card>
     <a-card :bordered="false">
       <s-list
+        class=""
         ref="table"
         rowKey="id"
         :data="loadData"
         showPagination="auto">
         <span slot-scope="text, record">
           <template>
-            <a-card hoverable style="width: 100%">
-              <div>{{ record.type | typeFormat }}{{ record.title }}</div>
+            <div style="background:rgba(250,250,250,1);padding: 24px;32px">
+              <h4>
+                {{ record.type | typeFormat }}{{ record.title }}
+              </h4>
+            </div>
+            <a-card hoverable style="width: 100%" class="question-list-card">
               <a-list itemLayout="horizontal" :dataSource="record.questionDetails">
                 <a-list-item slot="renderItem" slot-scope="item, index">
                   <p class="select-p">
@@ -63,6 +68,12 @@
                     <span class="select-span" v-show="!item.isAnswer">{{ selectLetters[index] }}.</span>
                     {{ item.content }}</p>
                 </a-list-item>
+                <a-row>
+                  <a-col :md="16">
+
+                  </a-col>
+                  <a-col :md="8"></a-col>
+                </a-row>
               </a-list>
               <template class="ant-card-actions" slot="actions">
 
@@ -70,6 +81,11 @@
                 <p> 技能标签：<span v-for="tag in record.questionSkillTags">{{ tag.tagName }};</span></p>
                 <p> 组卷次数：{{ record.usedNum }}次</p>
                 <p> 难度系数：{{ record.level | levelFormat }}</p>
+                <p> </p>
+                <p style="display: flex;">
+                  <a style="color: #1b9aee" @click="handleEdit(record)">编辑</a>
+                  <a style=" margin-left: 10px;color: #1b9aee" @click="handleDelete(record)">删除</a>
+                </p>
               </template>
             </a-card>
           </template>
@@ -94,22 +110,17 @@ export default {
     vm = this
     return {
       labelCol: {
-        lg: { span: 1 }, sm: { span: 7 }
+        lg: { span: 2 }, md: { span: 3 }, sm: { span: 7 }
       },
       wrapperCol: {
-        lg: { span: 23 }, sm: { span: 17 }
+        lg: { span: 22 }, md: { span: 21 }, sm: { span: 17 }
       },
       skills: [
         { name: '全部', id: null },
         { name: 'Java开发', id: 1 }
       ],
       skillTags: [
-        { name: '全部', id: null },
-        { name: 'mysql', id: 1 },
-        { name: 'spring', id: 2 },
-        { name: 'Spring boot', id: 3 },
-        { name: 'mybatis', id: 4 },
-        { name: 'jpa', id: 5 }
+        { name: '全部', id: null }
       ],
       skillTagIds: [],
       questionTypes: [
@@ -154,6 +165,14 @@ export default {
     }
   },
   methods: {
+    getSkillTags () {
+      const params = {}
+      params.pageNum = 1
+      params.pageSize = 9999
+      QuestionApi.getSkillTags(params).then(function (res) {
+        vm.skillTags = vm.skillTags.concat(res.data.list)
+      })
+    },
     checkBoxClick (item) {
       const id = item.id
       console.log('id')
@@ -192,16 +211,16 @@ export default {
       this.refresh()
     },
     handleAdd () {
-      this.$router.push('/question/add')
+      this.$router.push('question/add')
     },
     handleBatchAdd () {
-      this.$router.push('/question/BatchAdd')
+      this.$router.push('question/BatchAdd')
     },
     handleEdit (record) {
-      this.$router.push({ path: 'account/add', query: { id: record.id } })
+      this.$router.push({ path: 'question/add', query: { id: record.id } })
     },
     handleDelete (record) {
-      AccountApi.deleteAccount(record.id).then(res => {
+      QuestionApi.deleteQuestion(record.id).then(res => {
         this.$message.success('删除成功')
         this.refresh()
       })
@@ -213,46 +232,111 @@ export default {
       this.queryParam = {}
       this.$refs.table.refresh()
     }
+  },
+  mounted () {
+    this.getSkillTags()
   }
 }
 </script>
 
-<style scoped lang="less">
-  .select-btn {
-    margin: 0px 10px;
-  }
+<style  lang="less">
 
-  .select-p {
-    display: flex;
-    align-items: center; /*  子元素相对父元素垂直居中 */
+  .question-list{
+    .ant-radio-button-wrapper:not(:first-child)::before{
+        background-color: inherit !important;
+          width: 0px;
 
-  }
+    }
 
-  .select-span {
-    text-align: center;
-    align-items: center; /*  子元素相对父元素垂直居中 */
-    justify-content: center;
-    display: flex;
-    width: 25px;
-    height: 25px;
-    border-radius: 12.5px;
-    margin-right: 5px;
-  }
+    .ant-radio-button-wrapper-checked{
+      background:#1b9aee;
+      color: white;
+    }
 
-  .active {
-    color: white;
-    background: #0082E9;
+    .ant-radio-button-wrapper-checked:not(:first-child)::before{
+        background-color: inherit !important;
+          width: 0px;
+    }
 
-  }
+    .ant-radio-button-wrapper{
+      border-left: 1px solid #d9d9d9 !important; ;
+    }
 
-  .selext-box {
+    .ant-radio-button-wrapper-checked:not(:first-child){
+      border-left: 0px solid #0082E9 !important; ;
+    }
 
-/*    .checkBoxChecked {
-      color: #1b9aee;
-      border-color: #1b9aee;
-      -webkit-box-shadow: -1px 0 0 0 #1b9aee;
-      box-shadow: -1px 0 0 0 #1b9aee;
-    }*/
+    .ant-radio-button-wrapper-checked:first-child{
+      border-left: 1px solid #0082E9 !important; ;
+    }
+
+    .ant-radio-button-wrapper:first-child{
+      border-left: none;
+    }
+
+    .select-btn {
+      margin: 0px 10px;
+      border-radius:2px;
+
+    }
+
+    .select-p {
+      display: flex;
+      align-items: center; /*  子元素相对父元素垂直居中 */
+
+    }
+
+    .select-span {
+      text-align: center;
+      align-items: center; /*  子元素相对父元素垂直居中 */
+      justify-content: center;
+      display: flex;
+      width: 25px;
+      height: 25px;
+      border-radius: 12.5px;
+      margin-right: 5px;
+    }
+
+    .active {
+      color: white;
+      background: #0082E9;
+
+    }
+
+    .selext-box {
+
+      /*    .checkBoxChecked {
+            color: #1b9aee;
+            border-color: #1b9aee;
+            -webkit-box-shadow: -1px 0 0 0 #1b9aee;
+            box-shadow: -1px 0 0 0 #1b9aee;
+          }*/
+    }
+
+    .button-card{
+      .ant-card-body{
+        padding-top: 0px;
+      }
+    }
+
+    .select-form {
+      .ant-form-item{
+        margin-bottom: 12px !important;
+      }
+    }
+    .question-list-card{
+      border-top: 0px;
+      .ant-list-item{
+        padding: 5px;
+        border: 0px;
+      }
+      .ant-card-actions{
+        p{
+          margin-bottom: 0px;
+        }
+      }
+    }
+
   }
 
 </style>

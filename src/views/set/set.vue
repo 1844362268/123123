@@ -1,27 +1,29 @@
 <template>
   <a-card bordered>
-    <div class="d1">
-      <div class="d2">
-        <img src="../../assets/20191127180342.png" alt class="img1" />
-        <div class="login">
-          <p>登录密码</p>
-          <span>上次登录时间为:</span>
-          <span>{{ lastdate }}</span>
+    <a-spin :spinning="showLoading">
+      <div class="d1">
+        <div class="d2">
+          <img src="../../assets/20191127180342.png" alt class="img1" />
+          <div class="login">
+            <p>登录密码</p>
+            <span>上次登录时间为:</span>
+            <span>{{ lastdate }}</span>
+          </div>
+          <a-button class="btn1" @click="showModal1()">修改</a-button>
         </div>
-        <a-button class="btn1" @click="showModal1()">修改</a-button>
-      </div>
-      <div class="d3">
-        <img src="../../assets/shouji12.svg" alt class="img2" />
-        <div class="phone">
-          <p>手机号</p>
-          <span>绑定手机号为:</span>
-          <span>{{ myphone }}</span>
+        <div class="d3">
+          <img src="../../assets/shouji12.svg" alt class="img2" />
+          <div class="phone">
+            <p>手机号</p>
+            <span>绑定手机号为:</span>
+            <span>{{ myphone }}</span>
+          </div>
+          <a-button class="btn2" @click="showModal2()">修改</a-button>
         </div>
-        <a-button class="btn2" @click="showModal2()">修改</a-button>
       </div>
-    </div>
-    <password-modal ref="passwordModal" ></password-modal>
-    <phone-modal ref="phoneModal" @parentMethod="reload" :tophone="tophone"></phone-modal>
+      <password-modal ref="passwordModal" ></password-modal>
+      <phone-modal ref="phoneModal" @parentMethod="createInfo" :tophone="tophone"></phone-modal>
+    </a-spin>
   </a-card>
 </template>
 
@@ -39,53 +41,58 @@ export default {
       data: {},
       lastdate: null,
       tophone: '',
-      myphone: ''
+      myphone: '',
+      showLoading: true
     }
   },
   created () {
-    SetApi.getInfo()
-      .then(res => {
-        console.log(res)
-        this.data = res.data
-        // 手机号
-        var tel = this.data.phone
-        this.tophone = tel
-        tel = '' + tel
-        var tel1 = tel.replace(tel.substring(3, 7), '****')
-        this.myphone = tel1
-        // 日期
-        var last = this.data.lastLogin.split('T')
-        var fl = last[0]
-        var fr = last[1]
-        var regTimes = []
-        if (fl) {
-          regTimes = fl.split('-')
-          if (regTimes.length === 3) {
-            var year = regTimes[0]
-            var month = regTimes[1]
-            var date = regTimes[2]
-            month = month.replace(/^0/, '')
-            date = date.replace(/^0/, '')
-            const newdate = year + '年' + month + '月' + date + '日'
-            this.lastdate = newdate
-          }
-        }
-        var newlast = `${this.lastdate} ${fr}`
-        console.log(newlast)
-        this.lastdate = newlast
-      })
-      .catch(err => alert(err))
+    this.createInfo()
   },
   methods: {
 
-    reload () {
+    // reload () {
+    //   SetApi.getInfo()
+    //     .then(res => {
+    //       console.log(res)
+    //       this.data = res.data
+    //       var last = this.data.lastLogin.split('T')
+    //       var newlast = last.join(' ')
+    //       this.lastdate = newlast
+    //     })
+    //     .catch(err => alert(err))
+    // },
+    createInfo () {
       SetApi.getInfo()
         .then(res => {
-          console.log(res)
+        // console.log(res)
           this.data = res.data
+          // 手机号
+          var tel = this.data.phone
+          this.tophone = tel
+          tel = '' + tel
+          var reg = /^(\d{3})\d*(\d{4})$/
+          var tel1 = tel.replace(reg, '$1****$2')
+          this.myphone = tel1
+          // 日期
           var last = this.data.lastLogin.split('T')
-          var newlast = last.join(' ')
+          var fl = last[0]
+          var fr = last[1]
+          var regTimes = []
+          if (fl) {
+            regTimes = fl.split('-')
+            if (regTimes.length === 3) {
+              var year = regTimes[0]
+              var month = regTimes[1]
+              var date = regTimes[2]
+              month = month.replace(/^0/, '')
+              date = date.replace(/^0/, '')
+              const newdate = year + '年' + month + '月' + date + '日'
+              this.lastdate = newdate
+            }
+          }
+          var newlast = `${this.lastdate} ${fr}`
           this.lastdate = newlast
+          this.showLoading = false
         })
         .catch(err => alert(err))
     },

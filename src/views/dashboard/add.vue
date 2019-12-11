@@ -1,52 +1,54 @@
 <template>
   <a-card :bordered="false" class="acd">
-    <a-form :form="form" @submit="handleSubmit" >
+    <a-spin :spinning="showLoading">
+      <a-form :form="form" @submit="handleSubmit" >
 
-      <a-form-item style="display: none">
-        <a-input type="hidden" v-decorator="['id']"></a-input>
-      </a-form-item>
-      <!-- 企业 -->
-      <a-form-item label="企业名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input
-          v-decorator="['name', {rules: rules.name}]"
-          placeholder="请输入企业名称"></a-input>
-      </a-form-item>
-      <!-- 联系方式 -->
-      <a-form-item label="联系方式" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input
-          v-decorator="['phone', {rules: rules.phone}]"
-          placeholder="联系方式即为登录账号">
-        </a-input>
-      </a-form-item>
-      <!-- 联系人 -->
-      <a-form-item label="联系人" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-input
-          v-decorator="['contact', {rules: rules.contact}]"
-          placeholder="请输入联系人">
-        </a-input>
-      </a-form-item>
-      <!-- 时间 -->
-      <a-form-item label="试用期限" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-range-picker
-          v-decorator="['date', {rules: rules.date}]"
-          :format="dateFormat"
-        />
-      </a-form-item>
-      <!-- 地址 -->
-      <a-form-item label="企业地址" :labelCol="labelCol" :wrapperCol="wrapperCol">
-        <a-textarea
-          v-decorator="['address', {rules: rules.address}]"
-          placeholder="请输入企业详细地址"
-          :rows="4"></a-textarea>
-      </a-form-item>
-      <a-form-item
-        :wrapperCol="{ span: 24 }"
-        style="text-align: center"
-      >
-        <a-button @click="handleCancel()">取消</a-button>
-        <a-button style="margin-left: 8px" htmlType="submit" type="primary">提交</a-button>
-      </a-form-item>
-    </a-form>
+        <a-form-item style="display: none">
+          <a-input type="hidden" v-decorator="['id']"></a-input>
+        </a-form-item>
+        <!-- 企业 -->
+        <a-form-item label="企业名称" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input
+            v-decorator="['name', {rules: rules.name}]"
+            placeholder="请输入企业名称"></a-input>
+        </a-form-item>
+        <!-- 联系方式 -->
+        <a-form-item label="联系方式" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input
+            v-decorator="['phone', {rules: rules.phone}]"
+            placeholder="联系方式即为登录账号">
+          </a-input>
+        </a-form-item>
+        <!-- 联系人 -->
+        <a-form-item label="联系人" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-input
+            v-decorator="['contact', {rules: rules.contact}]"
+            placeholder="请输入联系人">
+          </a-input>
+        </a-form-item>
+        <!-- 时间 -->
+        <a-form-item label="试用期限" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-range-picker
+            v-decorator="['date', {rules: rules.date}]"
+            :format="dateFormat"
+          />
+        </a-form-item>
+        <!-- 地址 -->
+        <a-form-item label="企业地址" :labelCol="labelCol" :wrapperCol="wrapperCol">
+          <a-textarea
+            v-decorator="['address', {rules: rules.address}]"
+            placeholder="请输入企业详细地址"
+            :rows="4"></a-textarea>
+        </a-form-item>
+        <a-form-item
+          :wrapperCol="{ span: 24 }"
+          style="text-align: center"
+        >
+          <a-button @click="handleCancel()">取消</a-button>
+          <a-button style="margin-left: 8px" htmlType="submit" type="primary">提交</a-button>
+        </a-form-item>
+      </a-form>
+    </a-spin>
   </a-card>
 </template>
 
@@ -77,6 +79,7 @@ export default {
       wrapperCol: {
         lg: { span: 10 }, sm: { span: 17 }
       },
+      showLoading: false,
       rules: {
         name: [{ required: true, message: '用户名不能为空' }, { max: 30, message: '最大长度不超过30字节' }],
         phone: [{ required: true, message: '请输入联系方式' }],
@@ -94,6 +97,7 @@ export default {
       const {
         form: { validateFields }
       } = this
+      this.showLoading = true
       const validateFieldsKey = ['name', 'phone', 'contact', 'date', 'address']
 
       validateFields(validateFieldsKey, { force: true }, (err, values) => {
@@ -106,6 +110,7 @@ export default {
           EnterpriseApi.addAccount(addp)
             .then(res => {
               console.log(res)
+              this.showLoading = false
               this.$message.success('添加用户成功')
               this.$router.push('/dashboard')
             })

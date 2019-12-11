@@ -23,7 +23,7 @@
       </a-menu-item>
 
       <a-menu-item key="3" @click="sort3()">
-        <router-link to="/role">
+        <router-link to="/testers">
           <user-icon :type="ceshi"></user-icon>
           <span>测试人员管理</span>
         </router-link>

@@ -72,18 +72,15 @@ export default {
         if (!errors) {
           var addparams = { ...values }
           TagApi.add(addparams).then(res => {
+            this.showLoading = false
             this.$emit('parentMethod')
-            this.handleSuccess()
+            this.$message.success('添加成功')
+            this.visible = false
           })
         }
-        this.showLoading = false
       })
-    },
-    handleSuccess () {
-      this.visible = false
-      // this.$emit('ok')
-      this.form.resetFields()
     }
+
   }
 }
 </script>

@@ -5,6 +5,7 @@
     :visible="visible"
     :confirmLoading="showLoading"
     @cancel="hide"
+    @ok="hide"
   >
     <a-spin :spinning="showLoading">
       <a-form :form="form">
@@ -16,6 +17,7 @@
           <a-input
             disabled
             v-decorator="['techName']"
+
           >java开发</a-input>
 
         </a-form-item>
@@ -59,7 +61,6 @@ export default {
       var name = params.name
       var techName = params.techName
       var pp = { id, name, techName }
-
       if (pp) {
         this.$nextTick(() => {
           this.form.setFieldsValue(pp)

@@ -1,0 +1,136 @@
+<template>
+  <div>
+    <a-card :bordered="false" class="table-page-search-wrapper">
+      <a-form layout="inline">
+        <a-row :gutter="48">
+          <a-col :md="8" :sm="24">
+            <a-form-item label="测试人员姓名">
+              <a-input
+                v-model="queryParam.keyword"
+                placeholder="请输入"
+                @pressEnter="$refs.table.refresh()"></a-input>
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="24">
+            <a-form-item label="联系方式">
+              <a-input
+                v-model="queryParam.tel"
+                placeholder="请输入"
+                @pressEnter="$refs.table.refresh()"></a-input>
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="24" style="flex-direction: row-reverse;display: flex">
+            <span class="table-page-search-submitButtons">
+              <a-button type="primary" @click="$refs.table.refresh()">查询</a-button>
+              <a-button style="margin-left: 8px" @click="reset()">重置</a-button>
+            </span>
+          </a-col>
+        </a-row>
+      </a-form>
+    </a-card>
+    <a-card :bordered="false">
+      <div class="table-operator">
+        <h4>数据列表</h4>
+      </div>
+
+      <s-table
+        ref="table"
+        rowKey="id"
+        :columns="columns"
+        :data="loadData"
+        showPagination="auto"
+      >
+        <span slot="serial" slot-scope="text, record, index">
+          {{ index + 1 }}
+        </span>
+        <span slot="createTime" slot-scope="text, record">{{ record.createTime | moment }}</span>
+        <span slot="action" slot-scope="text, record">
+          <template>
+            <a @click="handleDelete(record)">删除</a>
+            <a-divider type="vertical"/>
+            <a @click="handleDetail(record)">查看</a>
+          </template>
+        </span>
+      </s-table>
+    </a-card>
+  </div>
+</template>
+
+<script>
+import { STable } from '@/components'
+import AccountApi from '@/api/account'
+import TestApi from '@/api/test'
+
+export default {
+  name: 'TableList',
+  components: {
+    STable
+  },
+  data () {
+    return {
+      // 查询参数
+      queryParam: {},
+      // 表头
+      columns: [
+        {
+          title: '序号',
+          scopedSlots: { customRender: 'serial' }
+        },
+        {
+          title: '测试人姓名',
+          dataIndex: 'name'
+        },
+        {
+          title: '联系方式',
+          dataIndex: 'phone'
+        },
+        {
+          title: '应聘岗位',
+          dataIndex: 'jobName'
+        },
+        {
+          title: '应聘企业',
+          dataIndex: 'enterpriseName'
+        },
+        {
+          title: '测试次数',
+          dataIndex: 'examNum'
+        },
+        {
+          title: '操作',
+          dataIndex: 'action',
+          width: '150px',
+          scopedSlots: { customRender: 'action' }
+        }
+      ],
+      // 加载数据方法 必须为 Promise 对象
+      loadData: parameter => {
+        return TestApi.getList(Object.assign(parameter, this.queryParam)).then(res => {
+          return res.data
+        })
+      }
+    }
+  },
+  methods: {
+    handleAdd () {
+      this.$router.push('account/add')
+    },
+    handleDetail (record) {
+      this.$router.push({ path: 'testers/detail', query: { id: record.id } })
+    },
+    handleDelete (record) {
+      AccountApi.deleteAccount(record.id).then(res => {
+        this.$message.success('删除成功')
+        this.refresh()
+      })
+    },
+    refresh () {
+      this.$refs.table.refresh()
+    },
+    reset () {
+      this.queryParam = {}
+      this.$refs.table.refresh()
+    }
+  }
+}
+</script>
